@@ -1,0 +1,68 @@
+<?php
+error_reporting(0);
+require('fpdf/fpdf.php');
+
+
+
+$pdf= new FPDF();
+function calcule($first,$second) {
+                $kwh = $second - $first;
+                $tranch ; 
+                $p_u ;
+                $rfe = '6,47';
+                $tumbre = '0,45';
+                // tax fix :
+                $tva = 0.14;
+                $calibre = $_POST['cars'];
+                if ($kwh < 150) {
+
+                        if ($kwh > 0 && $kwh < 100) {
+                                $tranch ='tranch 1';
+                                $p_u  = '0,794'; 
+                        } else if ($kwh > 101 && $kwh < 150) {
+                                $tranch = 'tranch 2';
+                                $p_u = '0,883';
+
+                        }
+
+                } else if ($kwh > 150) {
+                        if ($kwh > 151 && $kwh < 210) {
+                                $tranch ='tranch 3';
+                                $p_u = '0,9451'; 
+                        }else if ($kwh > 211 && $kwh < 310) {
+                                $tranch ='tranch 4';
+                                $p_u = '1,0489'; 
+                        }else if ($kwh > 311 && $kwh < 510) {
+                                $tranch ='tranch 5';
+                                $p_u = '1,2915'; 
+                        }else if($kwh > 511) {
+                                $tranch = 'tranch 6';
+                                $p_u =  '1,4975';
+                        }
+
+                }
+                $hors_tax = number_format((float)$kwh * str_replace(',','.',$p_u),1,'.','');
+                $rfe = str_replace(',','.',$rfe);
+                $tumbre = str_replace(',','.',$tumbre);
+                $consom =  number_format((float)$hors_tax,1,'.','') * $tva + $rfe + $tumbre;
+                $result = $hors_tax + str_replace(',','.',$calibre);
+		$array_info = [
+				'hors_tax'=>$hors_tax,
+				'tva'=>'14%',
+				'kwh'=> $kwh
+				];
+		return $array_info;
+        }
+$first_index = intval($_POST['firstIndex']);
+$second_index =intval($_POST['secondIndex']);
+$write = calcule($first_index,$second_index);
+$pdf = new FPDF();
+$pdf->AddPage();
+$pdf->SetTextColor(128,128,140);
+$pdf->SetFont('Arial','',8);
+$pdf->Cell(55,5,'Ancien index : '.$first_index,1,0);
+$pdf->Cell(55,5,'Nouvel index : '.$second_index,1,0);
+$pdf->Cell(55,5,'Consommation : '.$write['kwh'].' kwh',1,0);
+$pdf->Cell(55,5,'Consommation : '.$write['kwh'].' kwh',1,0,true);
+$pdf->Output();
+?>
